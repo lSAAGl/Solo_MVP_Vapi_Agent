@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PitchPilot Voice Dashboard</title>
+    <script src="/config.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .status {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+            color: #1976d2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PitchPilot Voice Dashboard</h1>
+        <div class="status">
+            <p><strong>Status:</strong> Dashboard stub ready for development</p>
+            <p>This is a placeholder dashboard that will be enhanced during the hackathon.</p>
+            <p><strong>Voice AI:</strong> Click the voice button in the bottom-right to start a conversation!</p>
+        </div>
+
+        <section style="margin-top:24px;">
+            <h3 style="margin:0 0 8px 0;">Live Transcript</h3>
+            <div id="transcript" style="height:240px; overflow:auto; background:#f7fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:14px; line-height:1.4;"></div>
+        </section>
+    </div>
+
+<script>
+  var vapiInstance = null;
+  (function (d, t) {
+    var g = document.createElement(t),
+        s = d.getElementsByTagName(t)[0];
+    g.src = "https://cdn.jsdelivr.net/gh/VapiAI/html-script-tag@latest/dist/assets/index.js";
+    g.defer = true;
+    g.async = true;
+    s.parentNode.insertBefore(g, s);
+    g.onload = function () {
+      const apiKey = window.VAPI_PUBLIC_KEY || "";
+      const assistant = window.VAPI_ASSISTANT_ID || "";
+      if (!apiKey || !assistant) {
+        console.warn("Vapi widget missing apiKey or assistant id");
+        return;
+      }
+      vapiInstance = window.vapiSDK.run({
+        apiKey,
+        assistant,
+        config: { position: "bottom-right" }
+      });
+    };
+  })(document, "script");
+</script>
+
+<script>
+  // Connect to WebSocket for live updates
+  (function() {
+    const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+    const url = `${proto}://${location.host}/ws`;
+    const el = document.getElementById('transcript');
+
+    function addLine(s) {
+      const p = document.createElement('div');
+      p.textContent = s;
+      el.appendChild(p);
+      el.scrollTop = el.scrollHeight;
+    }
+
+    try {
+      const ws = new WebSocket(url);
+      ws.onopen = () => addLine('[connected]');
+      ws.onmessage = (evt) => {
+        try {
+          const msg = JSON.parse(evt.data);
+          if (msg.kind === 'transcript' && msg.text) addLine(msg.text);
+          if (msg.kind === 'status' && msg.text) addLine(`[${msg.text}]`);
+          if (msg.kind === 'tool') addLine(`[tool] ${msg.name} → ${msg.url || msg.to || ''} ${msg.subject ? '('+msg.subject+')' : ''}`);
+        } catch (e) {}
+      };
+      ws.onclose = () => addLine('[disconnected]');
+    } catch (e) {
+      addLine('[websocket error]');
+    }
+  })();
+</script>
+</body>
+</html>

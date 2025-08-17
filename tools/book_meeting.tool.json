@@ -1,0 +1,27 @@
+{
+  "type": "function",
+  "function": {
+    "name": "book_meeting",
+    "description": "Return a Cal.com booking link for the caller.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "name":     { "type": "string", "description": "Lead name" },
+        "email":    { "type": "string", "description": "Lead email" },
+        "slotPref": { "type": "string", "description": "Caller time preference (e.g., 'next Tue AM')." }
+      },
+      "required": []
+    }
+  },
+  "server": {
+    "url": "https://illustration-kenny-disease-integrated.trycloudflare.com/tools/book_meeting",
+    "method": "POST",
+    "headers": { "Content-Type": "application/json" }
+  },
+  "messages": [
+    { "type": "request-start",   "message": "I'll grab a booking link." },
+    { "type": "request-success", "message": "Here's your booking link." },
+    { "type": "request-failure", "message": "I couldn't fetch that right now. I can text or email it instead." }
+  ],
+  "timeoutSeconds": 20
+}
